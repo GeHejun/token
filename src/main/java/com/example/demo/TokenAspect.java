@@ -55,12 +55,19 @@ public class TokenAspect {
     }
 
     public Object validateToken(ProceedingJoinPoint joinPoint, HttpServletRequest request,
-            String tokenName) throws Throwable {
+            String tokenName){
         String token = request.getParameter(PARAM_TOKEN);
         String attribute = (String) request.getSession().getAttribute(tokenName);
         if (token.equals(attribute)) {
             request.getSession().removeAttribute(tokenName);
-            return joinPoint.proceed();
+            Object object = null;
+            try {
+                object = joinPoint.proceed();
+            } catch (Throwable throwable) {
+                request.getSession().setAttribute(tokenName,token);
+            }
+
+            return object;
         }
         return "请不要重复提交表单";
     }
